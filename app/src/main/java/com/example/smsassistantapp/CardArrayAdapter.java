@@ -3,14 +3,18 @@ package com.example.smsassistantapp;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CardArrayAdapter  extends ArrayAdapter<Card> {
     private static final String TAG = "CardArrayAdapter";
@@ -18,7 +22,9 @@ public class CardArrayAdapter  extends ArrayAdapter<Card> {
 
     static class CardViewHolder {
         TextView line1;
+        TextView label;
         TextView line2;
+        Button billbtn;
     }
 
     public CardArrayAdapter(Context context, int textViewResourceId) {
@@ -50,14 +56,31 @@ public class CardArrayAdapter  extends ArrayAdapter<Card> {
             row = inflater.inflate(R.layout.list_item_card, parent, false);
             viewHolder = new CardViewHolder();
             viewHolder.line1 = (TextView) row.findViewById(R.id.line1);
+            viewHolder.label = (TextView) row.findViewById(R.id.label);
             viewHolder.line2 = (TextView) row.findViewById(R.id.line2);
+            viewHolder.billbtn= (Button) row.findViewById(R.id.billbtn);
             row.setTag(viewHolder);
         } else {
             viewHolder = (CardViewHolder)row.getTag();
         }
         Card card = getItem(position);
         viewHolder.line1.setText(card.getLine1());
+        viewHolder.label.setText(card.getLabel());
         viewHolder.line2.setText(card.getLine2());
+
+
+        String paybtnvisibility="";
+        paybtnvisibility = card.getLabel();
+        Pattern bill = Pattern.compile("\\bBill|bill\\b");
+        Matcher matcher = bill.matcher(paybtnvisibility);
+        if(matcher.find()){
+            viewHolder.billbtn.setVisibility(View.VISIBLE);
+            Log.i("check if loop","label present");
+        }
+        else{
+            viewHolder.billbtn.setVisibility(View.INVISIBLE);
+        }
+
         return row;
     }
 

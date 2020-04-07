@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SmsAssistantApp</string>
+    <string name="phonepe">Pay instantly with PhonePe <a href="https://phon.pe/br_9yuFJWN" target="_top">PhonePeICON</a></string>
+
 </resources>

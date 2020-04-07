@@ -26,12 +26,12 @@
             android:textSize="20dp"
             android:text="Text line 1"/>
         <TextView
-            android:id="@+id/middle"
+            android:id="@+id/label"
             android:textSize="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textStyle="italic"
-            android:textColor=""
+            android:textColor="#FF0000"
             android:text="Label : "/>
 
         <TextView
@@ -39,6 +39,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Text line 2"/>
+
+        <Button
+            android:id="@+id/billbtn"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textStyle="bold"
+            android:textColor="#0000FF"
+            android:text="Pay"/>
 
     </LinearLayout>
 </FrameLayout>
