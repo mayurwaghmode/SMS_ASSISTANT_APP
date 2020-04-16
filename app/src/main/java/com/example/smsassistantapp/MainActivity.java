@@ -2,32 +2,41 @@ package com.example.smsassistantapp;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.SimpleCursorAdapter;
 
 import java.io.StreamTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends Activity implements View.OnClickListener {
+public class MainActivity extends Activity implements View.OnClickListener ,SearchView.OnQueryTextListener {
 
-    Button btnSent, btnInbox, btnDraft, btnPay;
+    Button btnSent, btnInbox, btnPay;
     // Cursor Adapter
     SimpleCursorAdapter adapter;
     String colName;
 
+    EditText amountEt, noteEt, nameEt, upiIdEt;
+    Button send;
+
+    final int UPI_PAYMENT = 0;
 
     private static final String TAG = "CardListActivity";
     private CardArrayAdapter cardArrayAdapter;
     private SentCardArrayAdapter sentArrayAdapter;
-    private DraftCardArrayAdapter draftCardArrayAdapter;
     private ListView listView;
+    private SearchView mSearchView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -43,16 +52,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
         btnSent = (Button) findViewById(R.id.btnSentBox);
         btnSent.setOnClickListener(this);
 
-        btnDraft = (Button) findViewById(R.id.btnDraft);
-        btnDraft.setOnClickListener(this);
-
         btnPay = (Button) findViewById(R.id.billbtn);
 
         cardArrayAdapter = new CardArrayAdapter(getApplicationContext(), R.layout.list_item_card);
         sentArrayAdapter = new SentCardArrayAdapter(getApplicationContext(),R.layout.list_item_card);
-        draftCardArrayAdapter = new DraftCardArrayAdapter(getApplicationContext(),R.layout.list_item_card);
-    }
 
+        mSearchView=(SearchView) findViewById(R.id.searchView1);
+    }
     @Override
     public void onClick(View v) {
 
@@ -65,76 +71,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         String o = "(?<=\\s|^)[A-Z0-9]{2,}(?=\\s|$)";
         Pattern offer = Pattern.compile(o);
 
-        if (v == btnDraft) {
 
-            // Create Draft box URI
-            Uri draftURI = Uri.parse("content://sms/draft");
-
-            // List required columns btnPay.setVisibility(View.INVISIBLE);
-            String[] reqCols = new String[]{"_id", "address", "body"};
-
-            // Get Content Resolver object, which will deal with Content
-            // Provider
-            ContentResolver cr = getContentResolver();
-
-            // Fetch Sent SMS Message from Built-in Content Provider
-            Cursor draftcursor = cr.query(draftURI, reqCols, null, null, null);
-
-            // Attached Cursor with adapter and display in listview
-            String body = "", address = "", value = "", label = "";
-            if (draftcursor.moveToFirst()) {
-                while (!draftcursor.isAfterLast()) {
-                    value = "";
-                    label = "";
-                    body = draftcursor.getString(draftcursor.getColumnIndex("body"));
-                    address = draftcursor.getString(draftcursor.getColumnIndex("address"));
-
-
-                    Matcher matcher = credittransaction.matcher(body);
-                    if(matcher.find()) {
-                        label = matcher.group()+" : ";
-                        matcher = amount.matcher(body);
-                        if(matcher.find()){
-                            value = matcher.group();
-                        }
-
-                    }
-                    matcher = debittransaction.matcher(body);
-                    if (matcher.find()){
-                        label = matcher.group()+" : ";
-                        matcher = amount.matcher(body);
-                        if(matcher.find()){
-                            value = matcher.group();
-                        }
-                    }
-
-                    matcher = offercode.matcher(body);
-                    if (matcher.find()){
-                        label = matcher.group() + " : ";
-                        matcher = offer.matcher(body);
-                        if (matcher.find()){
-                            value = matcher.group();
-                        }
-                    }
-
-                    matcher = bill.matcher(body);
-                    if (matcher.find()){
-                        label = matcher.group() + " : ";
-                        matcher = amount.matcher(body);
-                        if (matcher.find()){
-                            value = matcher.group();
-                        }
-                    }
-                    // do what ever you want here
-
-                    DraftCard draftcard = new DraftCard("Sender :" + address,label + value, "Message :" + body, btnPay);
-                    draftCardArrayAdapter.add(draftcard);
-                    draftcursor.moveToNext();
-                }
-            }
-            draftcursor.close();
-            listView.setAdapter(draftCardArrayAdapter);
-        }
         if (v == btnInbox) {
 
             cardArrayAdapter.clear();
@@ -154,7 +91,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             Cursor inboxcursor = cr.query(draftURI, reqCols, null, null, null);
 
             // Attached Cursor with adapter and display in listview
-            String body = "", address = "",label="Namaste",value="";
+            String body = "", address = "", label = "Namaste", value = "";
 
 
             if (inboxcursor.moveToFirst()) {
@@ -166,46 +103,63 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     // do what ever you want here
 
                     Matcher matcher = credittransaction.matcher(body);
-                    if(matcher.find()) {
-                        label = matcher.group()+" : ";
+                    if (matcher.find()) {
+                        label = matcher.group() + " : ";
                         matcher = amount.matcher(body);
-                        if(matcher.find()){
+                        if (matcher.find()) {
                             value = matcher.group();
                         }
 
                     }
                     matcher = debittransaction.matcher(body);
-                    if (matcher.find()){
-                        label = matcher.group()+" : ";
+                    if (matcher.find()) {
+                        label = matcher.group() + " : ";
                         matcher = amount.matcher(body);
-                        if(matcher.find()){
+                        if (matcher.find()) {
                             value = matcher.group();
                         }
                     }
 
                     matcher = offercode.matcher(body);
-                    if (matcher.find()){
+                    if (matcher.find()) {
                         label = matcher.group() + " : ";
                         matcher = offer.matcher(body);
-                        if (matcher.find()){
+                        if (matcher.find()) {
                             value = matcher.group();
                         }
                     }
                     matcher = bill.matcher(body);
-                    if (matcher.find()){
+                    if (matcher.find()) {
                         label = matcher.group() + " : ";
                         matcher = amount.matcher(body);
-                        if (matcher.find()){
+                        if (matcher.find()) {
                             value = matcher.group();
                         }
                     }
-                    Card card = new Card("Sender :" +address ,label + value, "Message :"+body,btnPay);
+                    Card card = new Card("Sender :" + address, label + value, "Message :" + body, btnPay);
                     cardArrayAdapter.add(card);
                     inboxcursor.moveToNext();
                 }
             }
             inboxcursor.close();
+
             listView.setAdapter(cardArrayAdapter);
+
+
+          /*  listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                    //Dessert dessert = desserts.get(i);
+                    Log.i("listview","listview is pressed");
+                    Intent donut = new Intent(MainActivity.this, PayMoney.class);
+                    startActivity(donut);
+                }
+            });
+            */
+            //for searching
+            listView.setTextFilterEnabled(true);
+            setupSearchView();
         }
         if (v == btnSent) {
             cardArrayAdapter.clear();
@@ -276,6 +230,37 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
             cursor.close();
             listView.setAdapter(sentArrayAdapter);
+
+            //for searching
+            listView.setTextFilterEnabled(true);
+            setupSearchView();
         }
     }
+    private void setupSearchView()
+    {
+        mSearchView.setIconifiedByDefault(false);
+        mSearchView.setOnQueryTextListener(this);
+        mSearchView.setSubmitButtonEnabled(true);
+        mSearchView.setQueryHint("Search Here");
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText)
+    {
+
+        if (TextUtils.isEmpty(newText)) {
+            listView.clearTextFilter();
+        } else {
+            listView.setFilterText(newText);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query)
+    {
+        return false;
+    }
+
+
 }

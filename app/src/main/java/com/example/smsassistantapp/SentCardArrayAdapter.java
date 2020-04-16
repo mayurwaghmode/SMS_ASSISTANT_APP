@@ -3,12 +3,15 @@ package com.example.smsassistantapp;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.provider.Telephony;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,11 +21,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SentCardArrayAdapter extends ArrayAdapter<SentCard>{
+public class SentCardArrayAdapter extends ArrayAdapter<SentCard> implements Filterable {
 
     private static final String TAG = "CardArrayAdapter";
     private List<SentCard> cardList = new ArrayList<SentCard>();
-
+    public List<SentCard> orig;
     static class CardViewHolder {
         TextView line1;
         TextView label;
@@ -85,6 +88,40 @@ public class SentCardArrayAdapter extends ArrayAdapter<SentCard>{
         }
 
         return row;
+    }
+    public Filter getFilter() {
+        return new Filter() {
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                final FilterResults oReturn = new FilterResults();
+                final ArrayList<SentCard> results = new ArrayList<SentCard>();
+                if (orig == null)
+                    orig = cardList;
+                if (constraint != null) {
+                    if (orig != null && orig.size() > 0) {
+                        for (final SentCard g : orig) {
+                            if (g.getLine2().toLowerCase()
+                                    .contains(constraint.toString()))
+                                results.add(g);
+                        }
+                    }
+                    oReturn.values = results;
+                }
+                return oReturn;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence constraint,
+                                          FilterResults results) {
+                cardList = (ArrayList<SentCard>) results.values;
+                notifyDataSetChanged();
+            }
+        };
+    }
+    public void notifyDataSetChanged() {
+        super.notifyDataSetChanged();
     }
 
     public Bitmap decodeToBitmap(byte[] decodedByte) {

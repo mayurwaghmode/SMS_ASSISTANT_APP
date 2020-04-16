@@ -1,6 +1,7 @@
 package com.example.smsassistantapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
@@ -9,17 +10,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CardArrayAdapter  extends ArrayAdapter<Card> {
+public class CardArrayAdapter  extends ArrayAdapter<Card> implements Filterable {
     private static final String TAG = "CardArrayAdapter";
     private List<Card> cardList = new ArrayList<Card>();
-
+    public List<Card> orig;
     static class CardViewHolder {
         TextView line1;
         TextView label;
@@ -75,6 +79,12 @@ public class CardArrayAdapter  extends ArrayAdapter<Card> {
         Matcher matcher = bill.matcher(paybtnvisibility);
         if(matcher.find()){
             viewHolder.billbtn.setVisibility(View.VISIBLE);
+            viewHolder.billbtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("pay btn","press to pay the money");
+                }
+            });
             Log.i("check if loop","label present");
         }
         else{
@@ -82,6 +92,40 @@ public class CardArrayAdapter  extends ArrayAdapter<Card> {
         }
 
         return row;
+    }
+    public Filter getFilter() {
+        return new Filter() {
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                final FilterResults oReturn = new FilterResults();
+                final ArrayList<Card> results = new ArrayList<Card>();
+                if (orig == null)
+                    orig = cardList;
+                if (constraint != null) {
+                    if (orig != null && orig.size() > 0) {
+                        for (final Card g : orig) {
+                            if (g.getLine2().toLowerCase()
+                                    .contains(constraint.toString()))
+                                results.add(g);
+                        }
+                    }
+                    oReturn.values = results;
+                }
+                return oReturn;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence constraint,
+                                          FilterResults results) {
+                cardList = (ArrayList<Card>) results.values;
+                notifyDataSetChanged();
+            }
+        };
+    }
+    public void notifyDataSetChanged() {
+        super.notifyDataSetChanged();
     }
 
     public Bitmap decodeToBitmap(byte[] decodedByte) {
